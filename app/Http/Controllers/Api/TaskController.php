@@ -9,6 +9,8 @@ use App\Http\Requests\UpdateTaskRequest;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Gate;
+use App\Jobs\SendTaskNotification;
+
 
 class TaskController extends Controller
 {
@@ -35,6 +37,9 @@ class TaskController extends Controller
     public function store(StoreTaskRequest $request): JsonResponse
     {
         $task = $request->user()->tasks()->create($request->validated());
+
+        // Dispatch job for task creation notification
+        SendTaskNotification::dispatch($task, 'created', $task->user);
         
         return response()->json([
             'data' => $task->load('user'),
@@ -60,8 +65,19 @@ class TaskController extends Controller
         if (!Gate::allows('update', $task)) {
             abort(403, 'Unauthorized action.');
         }
+
+        $oldStatus = $task->status;
         
         $task->update($request->validated());
+
+        // Dispatch job if task was completed
+        if ($oldStatus !== 'completed' && $task->status === 'completed') {
+            SendTaskNotification::dispatch($task, 'completed', $task->user);
+        }
+        // Dispatch job for general updates (optional)
+        else {
+            SendTaskNotification::dispatch($task, 'updated', $task->user);
+        }
         
         return response()->json([
             'data' => $task->load('user'),
