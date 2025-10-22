@@ -22,6 +22,11 @@ return Application::configure(basePath: dirname(__DIR__))
         \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
        ]);
 
+        // Ensure Sanctum CSRF protection is in API group
+        $middleware->api(prepend: [
+            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+        ]);
+
        $middleware->alias([
         'throttle.api' => \Illuminate\Routing\Middleware\ThrottleRequests::class . ':api',
        ]);
