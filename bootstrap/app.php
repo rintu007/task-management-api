@@ -14,7 +14,17 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->appendToGroup('api', [
             \App\Http\Middleware\LogRequests::class,
+            \App\Http\Middleware\SecurityHeaders::class, 
+
         ]);
+
+        $middleware->api(prepend: [
+        \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+       ]);
+
+       $middleware->alias([
+        'throttle.api' => \Illuminate\Routing\Middleware\ThrottleRequests::class . ':api',
+       ]);
 
         // Register alias for route-specific usage (optional)
         $middleware->alias([
