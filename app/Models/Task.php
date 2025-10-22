@@ -45,4 +45,24 @@ class Task extends Model
         
         return $query->where('user_id', $user->id); 
     }
+
+    /**
+     * Get task counts by status (optimized query)
+     */
+    public static function getCountsByStatus(int $userId): array
+    {
+        $counts = self::where('user_id', $userId)
+            ->selectRaw('COUNT(*) as total')
+            ->selectRaw('SUM(CASE WHEN status = "pending" THEN 1 ELSE 0 END) as pending')
+            ->selectRaw('SUM(CASE WHEN status = "in_progress" THEN 1 ELSE 0 END) as in_progress')
+            ->selectRaw('SUM(CASE WHEN status = "completed" THEN 1 ELSE 0 END) as completed')
+            ->first();
+
+        return [
+            'total' => $counts->total ?? 0,
+            'pending' => $counts->pending ?? 0,
+            'in_progress' => $counts->in_progress ?? 0,
+            'completed' => $counts->completed ?? 0,
+        ];
+    }
 }

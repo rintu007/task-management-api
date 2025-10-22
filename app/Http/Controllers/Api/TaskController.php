@@ -10,20 +10,20 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Gate;
 use App\Jobs\SendTaskNotification;
-
+use App\Services\TaskService;
 
 class TaskController extends Controller
 {
+    public function __construct(
+        private TaskService $taskService
+    ) {}
+
     public function index(Request $request): JsonResponse
     {
         $status = $request->get('status');
         $user = $request->user();
         
-        $tasks = Task::with('user')
-            ->forUser($user)
-            ->statusFilter($status)
-            ->latest()
-            ->get();
+        $tasks = $this->taskService->getCachedUserTasks($user->id, $status);
         
         return response()->json([
             'data' => $tasks,
@@ -38,7 +38,9 @@ class TaskController extends Controller
     {
         $task = $request->user()->tasks()->create($request->validated());
 
-        // Dispatch job for task creation notification
+        // Clear relevant caches
+        $this->taskService->clearUserTaskCaches($request->user()->id);
+        
         SendTaskNotification::dispatch($task, 'created', $task->user);
         
         return response()->json([
@@ -49,33 +51,33 @@ class TaskController extends Controller
 
     public function show(Task $task): JsonResponse
     {
-        // Use Gate facade to authorize view
         if (!Gate::allows('view', $task)) {
             abort(403, 'Unauthorized action.');
         }
         
+        $cachedTask = $this->taskService->getCachedTask($task->id);
+        
         return response()->json([
-            'data' => $task->load('user')
+            'data' => $cachedTask
         ]);
     }
 
     public function update(UpdateTaskRequest $request, Task $task): JsonResponse
     {
-        // Use Gate facade to authorize update
         if (!Gate::allows('update', $task)) {
             abort(403, 'Unauthorized action.');
         }
 
         $oldStatus = $task->status;
-        
         $task->update($request->validated());
 
-        // Dispatch job if task was completed
+        // Clear relevant caches
+        $this->taskService->clearUserTaskCaches($task->user_id);
+        $this->taskService->clearTaskCache($task->id);
+        
         if ($oldStatus !== 'completed' && $task->status === 'completed') {
             SendTaskNotification::dispatch($task, 'completed', $task->user);
-        }
-        // Dispatch job for general updates (optional)
-        else {
+        } else {
             SendTaskNotification::dispatch($task, 'updated', $task->user);
         }
         
@@ -87,12 +89,18 @@ class TaskController extends Controller
 
     public function destroy(Task $task): JsonResponse
     {
-        // Use Gate facade to authorize delete
         if (!Gate::allows('delete', $task)) {
             abort(403, 'Unauthorized action.');
         }
         
+        $userId = $task->user_id;
+        $taskId = $task->id;
+        
         $task->delete();
+        
+        // Clear relevant caches
+        $this->taskService->clearUserTaskCaches($userId);
+        $this->taskService->clearTaskCache($taskId);
         
         return response()->json([
             'message' => 'Task deleted successfully.'

@@ -17,6 +17,15 @@ return [
 
     'default' => env('CACHE_STORE', 'database'),
 
+    // Cache durations in seconds
+    'durations' => [
+        'tasks_list' => env('CACHE_TASKS_LIST', 300),      // 5 minutes default
+        'task_detail' => env('CACHE_TASK_DETAIL', 600),    // 10 minutes default
+        'user_data' => env('CACHE_USER_DATA', 3600),       // 1 hour default
+        'counts' => env('CACHE_COUNTS', 300),              // 5 minutes default
+        'default' => env('CACHE_DEFAULT', 3600),           // 1 hour default
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Cache Stores
