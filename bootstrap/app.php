@@ -12,7 +12,14 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        //
+        $middleware->appendToGroup('api', [
+            \App\Http\Middleware\LogRequests::class,
+        ]);
+
+        // Register alias for route-specific usage (optional)
+        $middleware->alias([
+            'log.requests' => \App\Http\Middleware\LogRequests::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
