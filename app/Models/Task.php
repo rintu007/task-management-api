@@ -65,17 +65,4 @@ class Task extends Model
             'completed' => $counts->completed ?? 0,
         ];
     }
-
-    public function setDescriptionAttribute($value): void
-    {
-        $this->attributes['description'] = strip_tags($value);
-    }
-
-    /**
-     * Set the title with XSS protection
-     */
-    public function setTitleAttribute($value): void
-    {
-        $this->attributes['title'] = strip_tags($value);
-    }
 }

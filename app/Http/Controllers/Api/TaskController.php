@@ -106,4 +106,17 @@ class TaskController extends Controller
             'message' => 'Task deleted successfully.'
         ]);
     }
+
+    /**
+     * Get task counts by status for the authenticated user
+     */
+    public function getCounts(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $counts = $this->taskService->getCachedTaskCounts($user->id);
+        
+        return response()->json([
+            'data' => $counts
+        ]);
+    }
 }

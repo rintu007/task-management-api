@@ -25,14 +25,22 @@ class TaskService
      * Get cached task counts for user
      */
     public function getCachedTaskCounts(int $userId): array
-    {
-        $cacheKey = "user_{$userId}_task_counts";
-        $duration = config('cache.durations.counts', 300);
+{
+    $cacheKey = "user_{$userId}_task_counts";
+    $duration = config('cache.durations.counts', 300);
+    
+    return Cache::remember($cacheKey, $duration, function () use ($userId) {
+        $counts = Task::getCountsByStatus($userId);
         
-        return Cache::remember($cacheKey, $duration, function () use ($userId) {
-            return Task::getCountsByStatus($userId);
-        });
-    }
+        // Ensure all keys are present even if zero
+        return array_merge([
+            'total' => 0,
+            'pending' => 0,
+            'in_progress' => 0,
+            'completed' => 0,
+        ], $counts);
+    });
+}
 
     /**
      * Get cached user tasks with filters

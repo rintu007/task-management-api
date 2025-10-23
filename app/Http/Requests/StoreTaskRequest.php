@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use App\Helpers\Sanitizer;
 
 class StoreTaskRequest extends FormRequest
 {
@@ -38,9 +39,21 @@ class StoreTaskRequest extends FormRequest
                 'nullable',
                 'date',
                 'after:now',
-                'before:1 year' // Prevent dates too far in future
+                'before:1 year'
             ],
         ];
+    }
+
+    /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        // Sanitize input before validation using our custom sanitizer
+        $this->merge([
+            'title' => Sanitizer::sanitize($this->title),
+            'description' => Sanitizer::sanitize($this->description),
+        ]);
     }
 
     public function messages(): array

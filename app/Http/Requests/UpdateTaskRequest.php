@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use App\Helpers\Sanitizer;
 
 class UpdateTaskRequest extends FormRequest
 {
@@ -44,5 +45,17 @@ class UpdateTaskRequest extends FormRequest
                 'before:1 year'
             ],
         ];
+    }
+
+    /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        // Sanitize input before validation using our custom sanitizer
+        $this->merge([
+            'title' => Sanitizer::sanitize($this->title),
+            'description' => Sanitizer::sanitize($this->description),
+        ]);
     }
 }

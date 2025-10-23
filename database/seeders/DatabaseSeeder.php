@@ -12,16 +12,17 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // Create Roles
-        $adminRole = Role::create([
-            'name' => 'Admin',
-            'description' => 'Administrator with full access'
-        ]);
+       // --- Roles ---
+        $adminRole = Role::firstOrCreate(
+            ['name' => 'Admin'],
+            ['description' => 'Administrator with full access']
+        );
 
-        $userRole = Role::create([
-            'name' => 'User',
-            'description' => 'Regular user'
-        ]);
+        $userRole = Role::firstOrCreate(
+            ['name' => 'User'],
+            ['description' => 'Regular user']
+        );
+
 
         // Create Users
         $admin = User::create([
