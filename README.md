@@ -12,7 +12,7 @@ Laravel 11+ REST API for task management with role-based access control, caching
 ### Installation
 ```bash
 # Clone repository
-git clone <backend-repo-url>
+git clone https://github.com/rintu007/task-management-api.git
 cd task-management-backend
 
 # Install dependencies
