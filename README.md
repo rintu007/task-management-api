@@ -57,6 +57,7 @@ php artisan serve
 
 ## 🧪 Testing
 ```bash
+php artisan optimize
 php artisan test
 php artisan test --filter TaskTest
 php artisan test --filter AuthTest
